@@ -5,6 +5,6 @@ export class Diet {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ nullable: false })
+  @Column({ nullable: false }) //no null
   name: string;
 }
