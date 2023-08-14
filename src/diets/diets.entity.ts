@@ -1,4 +1,6 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToMany } from 'typeorm';
+import { Recipes } from '../recipes/recipes.entity';
+import { Recipe } from 'src/get-data/data.service';
 
 @Entity()
 export class Diet {
@@ -7,4 +9,6 @@ export class Diet {
 
   @Column({ nullable: false }) //no null
   name: string;
+  @ManyToMany(() => Recipes, (recipes) => recipes.diets)
+  recipes: Recipe[];
 }

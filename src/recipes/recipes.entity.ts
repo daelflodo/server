@@ -1,4 +1,13 @@
-import { Entity, PrimaryGeneratedColumn, Column, Unique, Check } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  Unique,
+  Check,
+  ManyToMany,
+  JoinTable,
+} from 'typeorm';
+import { Diet } from '../diets/diets.entity';
 
 @Entity()
 @Unique(['name'])
@@ -22,9 +31,13 @@ export class Recipes {
   @Column('text', { nullable: true })
   steps: string;
 
-  @Column({ default: false })
+  @Column({ default: true })
   created: boolean;
 
   @Column({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP' })
   timeStamp: Date;
+
+  @ManyToMany(() => Diet, { cascade: true }) // Define la relación Many-to-Many con Diet
+  @JoinTable() // Indica que hay una tabla de unión que conecta las dos entidades
+  diets: Diet[];
 }
