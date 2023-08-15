@@ -14,6 +14,7 @@ import { RecipesController } from './recipes/recipes.controller';
 import { RecipesModule } from './recipes/recipes.module';
 import { Diet } from './diets/diets.entity';
 import { DietRepository } from './diets/diet.repository';
+import { SharedModule } from './shared.module';
 
 @Module({
   imports: [
@@ -39,13 +40,12 @@ import { DietRepository } from './diets/diet.repository';
     }),
     DietsModule,
     RecipesModule,
-    TypeOrmModule.forFeature([Diet, DietRepository]), //*DietRepository
+    TypeOrmModule.forFeature([Diet, DietRepository]),
+    SharedModule, //*DietRepository
   ],
   controllers: [AppController, DietsController, RecipesController],
   providers: [AppService, GetDataService],
 })
 export class AppModule {
-  constructor() {
-    console.log('NODE_ENV:', process.env.NODE_ENV);
-  }
+  constructor() {}
 }

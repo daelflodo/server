@@ -1,23 +1,37 @@
-import { Controller, Get, Post, Body } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  Delete,
+  Query,
+} from '@nestjs/common';
 
 import { RecipesService } from './recipes.service';
-import { DietRepository } from '../diets/diet.repository';
 import { createRecipeDto } from './recipe.dtos';
 
 @Controller('recipes')
 export class RecipesController {
-  constructor(
-    private recipesService: RecipesService,
-    private dietRepository: DietRepository,
-  ) {}
+  constructor(private recipesService: RecipesService) {}
   @Get()
-  getRecipes() {
+  getRecipes(@Query('name') name: string) {
+    if (name) return 'tengo name';
     return this.recipesService.getAllRecipes();
-    // return 'hoy si';
   }
+  @Get(':id')
+  getRecipe(@Param('id') id) {
+    const sourceId = isNaN(id) ? 'DB' : 'API';
+    return this.recipesService.getAllRecipesById(id, sourceId);
+  }
+
   @Post()
   createRecipe(@Body() payload: createRecipeDto) {
-    //const { name, image, summary, healthScore, steps, diets } = req.body
     return this.recipesService.createRecipe(payload);
+  }
+
+  @Delete(':id')
+  dremoveRecipe(@Param('id') id) {
+    return this.recipesService.remove(id);
   }
 }
