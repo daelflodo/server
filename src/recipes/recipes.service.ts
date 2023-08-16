@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ConfigService } from '@nestjs/config';
-import { Repository } from 'typeorm';
+import { Repository, Like } from 'typeorm';
 import { GetDataService } from '../get-data/data.service';
 import { Recipes } from './recipes.entity';
-import { createRecipeDto } from './recipe.dtos';
+import { createRecipeDto, UpdateProductDto } from './recipe.dtos';
 import { Diet } from '../diets/diets.entity';
 import { DietRepository } from '../diets/diet.repository';
 import axios from 'axios';
@@ -23,17 +23,37 @@ export class RecipesService {
     this.apiKey = this.configService.get<string>('API_KEY');
   }
   async getAllRecipes() {
-    const dbRecipes = await this.recipeRepository.find();
-    // return dbRecipes;
-    // const formattedRecipes = dbRecipes.map((recipe) => ({
-    //   ...recipe,
-    //   diets: recipe.diets.map((diet) => diet.name),
-    // }));
+    const dbRecipes = await this.recipeRepository.find({
+      relations: ['diets'],
+    });
+    const dbRecipesFormated = dbRecipes.map((recipe) => ({
+      ...recipe,
+      diets: recipe.diets.map((diet) => diet.name),
+    }));
+
     const apiRecipes = await this.getDataService.mapApi();
-    return [...apiRecipes, ...dbRecipes];
+    return [...dbRecipesFormated, ...apiRecipes];
   }
 
-  async getRecipeByName(name: string) {}
+  async getRecipeByName(name: string) {
+    const allDb = await this.recipeRepository.find();
+    if (!!name[0] && allDb) name = name[0];
+
+    const recipesDb = await this.recipeRepository.find({
+      where: {
+        name: Like(`%${name}%`), // Utiliza el operador LIKE para buscar nombres que contengan el valor de búsqueda
+      },
+      // relations: ['diets'],
+    });
+
+    const recipeApi = (await this.getDataService.mapApi()).filter((recipe) =>
+      recipe.name
+        .toLocaleLowerCase()
+        .includes(name.toString().toLocaleLowerCase()),
+    );
+
+    return [...recipesDb, ...recipeApi];
+  }
 
   async createRecipe(payload: createRecipeDto) {
     console.log('Recipe', this.dietRepository);
@@ -106,8 +126,20 @@ export class RecipesService {
     };
     return recipeById;
   }
-  async remove(id) {
+
+  async remove(id: string) {
     await this.recipeRepository.delete(id);
     return { msg: 'Se elimino correctamente ' };
+  }
+
+  async update(id, payload: UpdateProductDto) {
+    const recipe = await this.recipeRepository.findOne({
+      where: { id },
+      relations: ['diets'],
+    });
+    console.log(recipe);
+
+    Object.assign(recipe, payload);
+    return this.recipeRepository.save(recipe);
   }
 }
